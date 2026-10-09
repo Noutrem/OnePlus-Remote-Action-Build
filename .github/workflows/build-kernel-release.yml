@@ -666,18 +666,18 @@ jobs:
         with:
           repository: WildKernels/OnePlus_KernelSU_SUSFS
           ref: main
-          path: local_build_action
+          path: action-source
 
       - name: 🩹 Fix GitLab Cloudflare Block for SuSFS
         shell: bash
         run: |
-          find local_build_action -type f -exec sed -i 's|https://gitlab.com/simonpunk/susfs4ksu|https://github.com/ShirkNeko/susfs4ksu|g' {} +
-          find local_build_action -type f -exec sed -i 's|gitlab.com/simonpunk/susfs4ksu|github.com/ShirkNeko/susfs4ksu|g' {} +
-          find local_build_action -type f -exec sed -i 's|/-/archive/|/archive/|g' {} +
+          find action-source -type f -exec sed -i 's|https://gitlab.com/simonpunk/susfs4ksu|https://github.com/ShirkNeko/susfs4ksu|g' {} +
+          find action-source -type f -exec sed -i 's|gitlab.com/simonpunk/susfs4ksu|github.com/ShirkNeko/susfs4ksu|g' {} +
+          find action-source -type f -exec sed -i 's|/-/archive/|/archive/|g' {} +
 
       - name: 🔨 Build Kernel
         id: build
-        uses: ./local_build_action/.github/actions/build-kernel
+        uses: ./action-source/.github/actions/build-kernel
         with:
           op_config_json: ${{ steps.prepare_config.outputs.config_json }}
           ksu_type: ${{ matrix.ksu_type }}

@@ -661,23 +661,26 @@ jobs:
         run: |
           echo "config_json=$(jq -nc --argjson m '${{ toJSON(matrix) }}' '$m | del(.ksu_type, .ksu_hash, .ksu_resolved_hash, .susfs_resolved_hash)')" >> "$GITHUB_OUTPUT"
 
-      - name: 📥 Download Build Action
-        uses: actions/checkout@v4
-        with:
-          repository: WildKernels/OnePlus_KernelSU_SUSFS
-          ref: main
-          path: action-source
-
-      - name: 🩹 Fix GitLab Cloudflare Block for SuSFS
+      - name: 🩹 Patch GitLab for SuSFS (Pre-download)
         shell: bash
         run: |
+          mkdir -p action-source
+          git clone --depth 1 https://github.com/WildKernels/OnePlus_KernelSU_SUSFS.git action-source
           find action-source -type f -exec sed -i 's|https://gitlab.com/simonpunk/susfs4ksu|https://github.com/ShirkNeko/susfs4ksu|g' {} +
           find action-source -type f -exec sed -i 's|gitlab.com/simonpunk/susfs4ksu|github.com/ShirkNeko/susfs4ksu|g' {} +
           find action-source -type f -exec sed -i 's|/-/archive/|/archive/|g' {} +
+          
+          # Патчим служебный кэш экшенов GitHub Runner
+          ACTIONS_DIR="/home/runner/work/_actions"
+          if [ -d "$ACTIONS_DIR" ]; then
+            find "$ACTIONS_DIR" -type f -exec sed -i 's|https://gitlab.com/simonpunk/susfs4ksu|https://github.com/ShirkNeko/susfs4ksu|g' {} +
+            find "$ACTIONS_DIR" -type f -exec sed -i 's|gitlab.com/simonpunk/susfs4ksu|github.com/ShirkNeko/susfs4ksu|g' {} +
+            find "$ACTIONS_DIR" -type f -exec sed -i 's|/-/archive/|/archive/|g' {} +
+          fi
 
       - name: 🔨 Build Kernel
         id: build
-        uses: ./action-source/.github/actions/build-kernel
+        uses: WildKernels/OnePlus_KernelSU_SUSFS/.github/actions/build-kernel@main
         with:
           op_config_json: ${{ steps.prepare_config.outputs.config_json }}
           ksu_type: ${{ matrix.ksu_type }}
